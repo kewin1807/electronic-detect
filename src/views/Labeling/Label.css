@@ -1,0 +1,32 @@
+.Dropzone-page {
+  padding: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-direction: column;
+}
+.Dropzone-img {
+  max-width: calc(100vw - 60px);
+  max-height: calc(100vw - 60px);
+  width: 448px;
+  height: 448px;
+  border: thin solid rgba(64, 64, 64, 0.15);
+  border-radius: 4px;
+  object-fit: cover;
+}
+
+.Dropzone {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  border: thin dashed #c2c2c2;
+  background: #fcfcfc;
+  max-width: calc(100vw - 40px);
+  max-height: calc(100vw - 40px);
+  width: 468px;
+  height: 468px;
+  padding: 10px;
+  border-radius: 5px;
+  position: relative;
+}
