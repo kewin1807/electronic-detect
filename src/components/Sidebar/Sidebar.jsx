@@ -17,7 +17,7 @@
 
 */
 import React from "react";
-import { NavLink } from "react-router-dom";
+import { NavLink, Link } from "react-router-dom";
 import { Nav } from "reactstrap";
 // javascript plugin used to create scrollbars on windows
 import PerfectScrollbar from "perfect-scrollbar";
@@ -96,6 +96,68 @@ class Sidebar extends React.Component {
                   </li>
                 );
               })}
+            <div className="logo">
+              <a
+                href="https://www.creative-tim.com"
+                className="simple-text logo-mini"
+              >
+                <div className="logo-img">
+                  <img src={logo} alt="react-logo" />
+                </div>
+              </a>
+              <a
+                href="https://nguyentuxuancong.github.io/?fbclid=IwAR2Iq6YSkAYA8Po8eRZQ8e-Yp47t3ITqDe7WK6DpopAHqRoLwpr4_dbbfRQ"
+                className="simple-text logo-normal"
+              >
+                Chức năng nhóm 1
+              </a>
+            </div>
+
+            <div className="logo">
+              <a
+                href="https://www.creative-tim.com"
+                className="simple-text logo-mini"
+              >
+                <div className="logo-img">
+                  <img src={logo} alt="react-logo" />
+                </div>
+              </a>
+              <a href="http://bibiweb.xyz" className="simple-text logo-normal">
+                Quản lý trạm điện và đợt kiểm tra
+              </a>
+            </div>
+            <div className="logo">
+              <a
+                href="https://www.creative-tim.com"
+                className="simple-text logo-mini"
+              >
+                <div className="logo-img">
+                  <img src={logo} alt="react-logo" />
+                </div>
+              </a>
+              <a
+                href="https://angular-project-51bf8.web.app/login"
+                className="simple-text logo-normal"
+              >
+                Quản trị lưới điện
+              </a>
+            </div>
+            <div className="logo">
+              <a
+                href="https://www.creative-tim.com"
+                className="simple-text logo-mini"
+              >
+                <div className="logo-img">
+                  <img src={logo} alt="react-logo" />
+                </div>
+              </a>
+              <a
+                href="http://nhom6.now.sh/"
+                className="simple-text logo-normal"
+              >
+                Quản lí sự cố
+              </a>
+            </div>
           </Nav>
         </div>
       </div>
