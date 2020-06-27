@@ -1,6 +1,6 @@
 self.__precacheManifest = (self.__precacheManifest || []).concat([
   {
-    "revision": "ffb03e78b59e73d11fe14cb3c3e50b3f",
+    "revision": "93d6c1bc4f0af970d66506f9c5cc3c76",
     "url": "/electronic-detect/index.html"
   },
   {
@@ -8,7 +8,7 @@ self.__precacheManifest = (self.__precacheManifest || []).concat([
     "url": "/electronic-detect/static/css/2.b3f6e4d1.chunk.css"
   },
   {
-    "revision": "ac351f0a6f053a21ea7b",
+    "revision": "2ac6c587b3dc5feda6e3",
     "url": "/electronic-detect/static/css/main.8b7744e5.chunk.css"
   },
   {
@@ -16,8 +16,8 @@ self.__precacheManifest = (self.__precacheManifest || []).concat([
     "url": "/electronic-detect/static/js/2.2f31dac1.chunk.js"
   },
   {
-    "revision": "ac351f0a6f053a21ea7b",
-    "url": "/electronic-detect/static/js/main.65980062.chunk.js"
+    "revision": "2ac6c587b3dc5feda6e3",
+    "url": "/electronic-detect/static/js/main.323ae0eb.chunk.js"
   },
   {
     "revision": "56fe107c7a9b16615b77",
