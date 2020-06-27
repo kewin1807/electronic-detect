@@ -22,7 +22,7 @@ const dashboard24HoursPerformanceChart = {
       labels: ["20/06", "21/06", "22/06", "23/06", "24/06", "25/06", "26/06"],
       datasets: [
         {
-          label: "Cable",
+          label: "Dây cáp điện",
           borderColor: "#6bd098",
           backgroundColor: "#6bd098",
           pointRadius: 0,
@@ -31,7 +31,7 @@ const dashboard24HoursPerformanceChart = {
           data: [3, 2, 3, 1, 5, 1, 2],
         },
         {
-          label: "Capacitor",
+          label: "Tụ điện",
           borderColor: "#f17e5d",
           backgroundColor: "#f17e5d",
           pointRadius: 0,
@@ -40,7 +40,7 @@ const dashboard24HoursPerformanceChart = {
           data: [9, 2, 3, 2, 2, 1, 3],
         },
         {
-          label: "brushing",
+          label: "Tụ sứ",
           borderColor: "#fcc468",
           backgroundColor: "#fcc468",
           pointRadius: 0,
@@ -49,7 +49,7 @@ const dashboard24HoursPerformanceChart = {
           data: [1, 2, 5, 2, 4, 2, 7],
         },
         {
-          label: "connector",
+          label: "Dây nối",
           borderColor: "#425af5",
           backgroundColor: "#425af5",
           pointRadius: 0,
@@ -108,7 +108,7 @@ const dashboard24HoursPerformanceChart = {
 const dashboardEmailStatisticsChart = {
   data: (canvas) => {
     return {
-      labels: ["Cable", "Capacitor", "Brushing", "Connector"],
+      labels: ["Dây cáp điện", "Tụ điện", "Tụ sứ", "Dây nối"],
       datasets: [
         {
           label: "Emails",

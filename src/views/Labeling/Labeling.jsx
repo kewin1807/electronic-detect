@@ -272,12 +272,12 @@ export default class LabelingTool extends React.Component {
                                   defaultBoxes={this.state.defaultBoxs}
                                   drawLabelEnd={this.drawLabelEnd}
                                   types={[
-                                    "Cable",
-                                    "Capacitor",
-                                    "Brushing",
-                                    "Connector",
+                                    "Dây cáp điện",
+                                    "Tụ điện",
+                                    "Tụ sứ",
+                                    "Dây nối",
                                   ]}
-                                  defaultType={"Cable"}
+                                  defaultType={"Dây cáp điện"}
                                 />
                               </Col>
                               {/* <Col

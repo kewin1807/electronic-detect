@@ -42,7 +42,7 @@ import {
 const DATA_LAST_DAY = {
   data: (canvas) => {
     return {
-      labels: ["Cable", "Capacitor", "Brushing", "Connector"],
+      labels: ["Dây cáp điện", "Tụ điện", "Tụ sứ", "Dây nối"],
       datasets: [
         {
           label: "Emails",
@@ -104,7 +104,7 @@ const DATA_LAST_DAY = {
 const DATA_7_DAYS = {
   data: (canvas) => {
     return {
-      labels: ["Cable", "Capacitor", "Brushing", "Connector"],
+      labels: ["Dây cáp điện", "Tụ điện", "Tụ sứ", "Dây nối"],
       datasets: [
         {
           label: "Emails",
@@ -166,7 +166,7 @@ const DATA_7_DAYS = {
 const DATA_LAST_MONTH = {
   data: (canvas) => {
     return {
-      labels: ["Cable", "Capacitor", "Brushing", "Connector"],
+      labels: ["Dây cáp điện", "Tụ điện", "Tụ sứ", "Dây nối"],
       datasets: [
         {
           label: "Emails",
@@ -240,10 +240,10 @@ class Dashboard extends React.Component {
 
   select = (event) => {
     let dataPice = this.state.dataPice;
-    if (event.target.innerText === "7 days") {
+    if (event.target.innerText === "7 ngày gần nhất") {
       dataPice = DATA_7_DAYS.data;
     }
-    if (event.target.innerText === "1 Month") {
+    if (event.target.innerText === "Tháng gần nhất") {
       dataPice = DATA_LAST_MONTH.data;
     } else {
       dataPice = DATA_LAST_DAY.data;
@@ -270,7 +270,7 @@ class Dashboard extends React.Component {
                     </Col>
                     <Col md="8" xs="7">
                       <div className="numbers">
-                        <p className="card-category">Traffic website</p>
+                        <p className="card-category">Lượng truy cập web</p>
                         <CardTitle tag="p">150</CardTitle>
                         <p />
                       </div>
@@ -280,7 +280,7 @@ class Dashboard extends React.Component {
                 <CardFooter>
                   <hr />
                   <div className="stats">
-                    <i className="fas fa-sync-alt" /> Last 7 days
+                    <i className="fas fa-sync-alt" /> 7 ngày gần nhất
                   </div>
                 </CardFooter>
               </Card>
@@ -296,7 +296,7 @@ class Dashboard extends React.Component {
                     </Col>
                     <Col md="8" xs="7">
                       <div className="numbers">
-                        <p className="card-category">Reports</p>
+                        <p className="card-category">Báo cáo</p>
                         <CardTitle tag="p">5</CardTitle>
                         <p />
                       </div>
@@ -306,7 +306,7 @@ class Dashboard extends React.Component {
                 <CardFooter>
                   <hr />
                   <div className="stats">
-                    <i className="far fa-calendar" /> Last day
+                    <i className="far fa-calendar" /> Ngày hôm qua
                   </div>
                 </CardFooter>
               </Card>
@@ -322,7 +322,7 @@ class Dashboard extends React.Component {
                     </Col>
                     <Col md="8" xs="7">
                       <div className="numbers">
-                        <p className="card-category">Errors</p>
+                        <p className="card-category">Lượng sự cố còn lại</p>
                         <CardTitle tag="p">23</CardTitle>
                         <p />
                       </div>
@@ -332,7 +332,7 @@ class Dashboard extends React.Component {
                 <CardFooter>
                   <hr />
                   <div className="stats">
-                    <i className="far fa-clock" /> Last 7 days
+                    <i className="far fa-clock" /> 7 ngày gần nhất
                   </div>
                 </CardFooter>
               </Card>
@@ -348,7 +348,7 @@ class Dashboard extends React.Component {
                     </Col>
                     <Col md="8" xs="7">
                       <div className="numbers">
-                        <p className="card-category">Fixed</p>
+                        <p className="card-category">Lượng sự cố đã sửa</p>
                         <CardTitle tag="p">+45</CardTitle>
                         <p />
                       </div>
@@ -358,7 +358,7 @@ class Dashboard extends React.Component {
                 <CardFooter>
                   <hr />
                   <div className="stats">
-                    <i className="fas fa-sync-alt" /> Last 7 days
+                    <i className="fas fa-sync-alt" /> 7 ngày gần nhất
                   </div>
                 </CardFooter>
               </Card>
@@ -368,8 +368,8 @@ class Dashboard extends React.Component {
             <Col md="12">
               <Card>
                 <CardHeader>
-                  <CardTitle tag="h5">Errors Statistic</CardTitle>
-                  <p className="card-category">7 days ago</p>
+                  <CardTitle tag="h5">Thống kê số lượng sự cố</CardTitle>
+                  <p className="card-category">7 ngày gần nhất</p>
                 </CardHeader>
                 <CardBody>
                   <Bar
@@ -382,7 +382,7 @@ class Dashboard extends React.Component {
                 <CardFooter>
                   <hr />
                   <div className="stats">
-                    <i className="fa fa-history" /> Updated 3 minutes ago
+                    <i className="fa fa-history" /> 3 phút trước
                   </div>
                 </CardFooter>
               </Card>
@@ -392,7 +392,7 @@ class Dashboard extends React.Component {
             <Col md="6">
               <Card>
                 <CardHeader>
-                  <CardTitle tag="h5">Errors Percentage Statistics</CardTitle>
+                  <CardTitle tag="h5">Biểu đồ tròn thống kê sự cố </CardTitle>
                   <p className="card-category"></p>
                 </CardHeader>
                 <CardBody>
@@ -402,9 +402,15 @@ class Dashboard extends React.Component {
                   >
                     <DropdownToggle>{this.state.value}</DropdownToggle>
                     <DropdownMenu>
-                      <DropdownItem onClick={this.select}>7 days</DropdownItem>
-                      <DropdownItem onClick={this.select}>1 Month</DropdownItem>
-                      <DropdownItem onClick={this.select}>LastDay</DropdownItem>
+                      <DropdownItem onClick={this.select}>
+                        7 ngày gần nhất
+                      </DropdownItem>
+                      <DropdownItem onClick={this.select}>
+                        Tháng gần nhất
+                      </DropdownItem>
+                      <DropdownItem onClick={this.select}>
+                        Ngày hôm qua
+                      </DropdownItem>
                     </DropdownMenu>
                   </ButtonDropdown>
                   <Pie
@@ -417,8 +423,8 @@ class Dashboard extends React.Component {
             <Col md="6">
               <Card className="card-chart">
                 <CardHeader>
-                  <CardTitle tag="h5">Uploaded images</CardTitle>
-                  <p className="card-category">Line Chart with Points</p>
+                  <CardTitle tag="h5">Số lượng ảnh đã upload</CardTitle>
+                  <p className="card-category">Biểu đồ đường</p>
                 </CardHeader>
                 <CardBody>
                   <Line
@@ -430,12 +436,9 @@ class Dashboard extends React.Component {
                 </CardBody>
                 <CardFooter>
                   <div className="chart-legend">
-                    <i className="fa fa-circle text-info" /> Images{" "}
+                    <i className="fa fa-circle text-info" /> Ảnh{" "}
                   </div>
                   <hr />
-                  <div className="card-stats">
-                    <i className="fa fa-check" /> Data information certified
-                  </div>
                 </CardFooter>
               </Card>
             </Col>

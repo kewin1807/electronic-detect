@@ -204,12 +204,12 @@ class DetailHistory extends React.Component {
                               defaultBoxes={item.bboxes}
                               drawLabelEnd={this.drawLabelEnd}
                               types={[
-                                "Cable",
-                                "Capacitor",
-                                "Brushing",
-                                "Connector",
+                                "Dây cáp điện",
+                                "Tụ điện",
+                                "Tụ sứ",
+                                "Dây nối",
                               ]}
-                              defaultType={"Cable"}
+                              defaultType={"Dây cáp điện"}
                             />
                           </Col>
                           <Col md="3" style={{ marginTop: 30, padding: 30 }}>

@@ -407,7 +407,7 @@ class Tracking extends Component {
           }}
         >
           <FormGroup>
-            <Label for="exampleEmail">Username</Label>
+            <Label for="exampleEmail">Người kiểm tra</Label>
             <Input
               type="select"
               name="username"
@@ -501,7 +501,7 @@ class Tracking extends Component {
         <Col md="6">
           <Form style={{ padding: 50 }} onSubmit={this.uploadFileToS3}>
             <FormGroup>
-              <Label for="exampleEmail">Username</Label>
+              <Label for="exampleEmail">Người kiểm tra</Label>
               <Input
                 type="select"
                 name="username"
@@ -545,13 +545,13 @@ class Tracking extends Component {
               </Input>
             </FormGroup>
             <FormGroup>
-              <Label for="exampleEmail">Địa chỉ</Label>
+              <Label for="exampleEmail">Trụ điện</Label>
               <Input
                 innerRef={(ref) => (this.address = ref)}
                 type="text"
                 name="address"
                 id="address"
-                placeholder="Địa chỉ cụ thể"
+                placeholder="Trụ điện số"
               />
             </FormGroup>
 
