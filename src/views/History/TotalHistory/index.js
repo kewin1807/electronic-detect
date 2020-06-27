@@ -4,7 +4,6 @@ import firebase from "../../../api";
 import { FormGroup, Row, Col, Label, Input } from "reactstrap";
 import constants from "../../../constants";
 import Pagination from "./Paginations";
-import DetailHistory from "../DetailHistory";
 import RingLoader from "react-spinners/RingLoader";
 import { css } from "@emotion/core";
 const override = css`
@@ -270,7 +269,7 @@ export default class TotalHistory extends React.Component {
         ) : null}
 
         {/* </div> */}
-        <DetailHistory ref={this.detailRef} />
+        
       </div>
     );
   }

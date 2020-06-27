@@ -11,6 +11,7 @@ import {
   Label,
   Input,
   Button,
+  Table,
 } from "reactstrap";
 import { Annotator } from "image-labeler-react";
 import "./Label.css";
@@ -83,6 +84,7 @@ export default class LabelingTool extends React.Component {
     const province = this.province.value;
     const district = this.district.value;
     const note = this.note.value;
+    const userfixed = this.userfixed.value;
     if (this.state.isLoading === false) {
       this.setState({ isLoading: true });
     }
@@ -122,6 +124,7 @@ export default class LabelingTool extends React.Component {
                 district: district,
                 note: note,
                 status: "Chưa hoàn thành",
+                userfixed: userfixed,
               })
               .then(() => {
                 this.setState({
@@ -147,20 +150,58 @@ export default class LabelingTool extends React.Component {
       this.state.annotations.boxes &&
       this.state.annotations.boxes.length > 0
     ) {
-      return this.state.annotations.boxes.map((item, index) => {
-        return (
-          <div key={index}>
-            <Button
-              variant="primary"
-              // onClick={() => {
-              //   this.setState({ defaultBoxs: [item] }, () => {});
-              // }}
-            >
-              {item.annotation}
-            </Button>
-          </div>
-        );
-      });
+      return (
+        <Table responsive>
+          <thead className="text-primary">
+            <tr>
+              <th>Số thứ tự</th>
+              <th>Vị trí bị lỗi</th>
+              <th>Lỗi gì</th>
+              <th>Mức độ nghiêm trọng</th>
+            </tr>
+          </thead>
+          <tbody>
+            {this.state.annotations.boxes.map((item, index) => {
+              return (
+                <tr key={index.toString()}>
+                  <td>{`${index + 1}`}</td>
+                  <td>{item.annotation}</td>
+                  <td>
+                    <FormGroup>
+                      <Input
+                        type="select"
+                        name="select"
+                        id="exampleSelect"
+                        innerRef={(ref) => (this.error = ref)}
+                      >
+                        <option>Bị gãy</option>
+                        <option>Bị vỡ</option>
+                        <option>Bị đổ</option>
+                        <option>Bị cháy</option>
+                      </Input>
+                    </FormGroup>
+                  </td>
+                  <td>
+                    <FormGroup>
+                      <Input
+                        type="select"
+                        name="select"
+                        id="exampleSelect"
+                        innerRef={(ref) => (this.errorate = ref)}
+                      >
+                        <option>Vấn đề nhẹ, giải quyết nhanh</option>
+                        <option>Lỗi vừa, giải quyết sau một giờ</option>
+                        <option>Lỗi nặng, cần nhiều người</option>
+                        <option>Lỗi cực nặng, cần họp</option>
+                      </Input>
+                    </FormGroup>
+                  </td>
+                </tr>
+              );
+            })}
+          </tbody>
+        </Table>
+      );
     }
   };
   onFormSubmit = (e) => {
@@ -174,6 +215,13 @@ export default class LabelingTool extends React.Component {
           this.uploadAnnotation();
         }
       );
+    }
+  };
+  drawLabelEnd = () => {
+    if (this.annoRef && this.annoRef.current) {
+      this.setState({
+        annotations: this.annoRef.current.getPostData(),
+      });
     }
   };
 
@@ -200,7 +248,7 @@ export default class LabelingTool extends React.Component {
 
               <CardBody>
                 <Row>
-                  <Col md="6">
+                  <Col md="7">
                     <div className="Dropzone-page">
                       {this.state.preview === "" ? (
                         <MagicDropzone
@@ -215,13 +263,14 @@ export default class LabelingTool extends React.Component {
                         <div>
                           <div className="App">
                             <Row>
-                              <Col md="9">
+                              <Col md="12">
                                 <Annotator
                                   ref={this.annoRef}
                                   height={500}
                                   width={500}
                                   imageUrl={this.state.preview}
                                   defaultBoxes={this.state.defaultBoxs}
+                                  drawLabelEnd={this.drawLabelEnd}
                                   types={[
                                     "Cable",
                                     "Capacitor",
@@ -231,22 +280,25 @@ export default class LabelingTool extends React.Component {
                                   defaultType={"Cable"}
                                 />
                               </Col>
-                              <Col
-                                md="3"
+                              {/* <Col
+                                md="6"
                                 style={{ marginTop: 30, padding: 30 }}
                               >
                                 {this.renderLabelData()}
-                              </Col>
+                              </Col> */}
+                            </Row>
+                            <Row>
+                              <Col md="12">{this.renderLabelData()}</Col>
                             </Row>
                           </div>
                         </div>
                       )}
                     </div>
                   </Col>
-                  <Col md="6">
-                    <Form style={{ padding: 50 }} onSubmit={this.onFormSubmit}>
+                  <Col md={5}>
+                    <Form onSubmit={this.onFormSubmit} style={{ padding: 50 }}>
                       <FormGroup>
-                        <Label for="exampleEmail">Username</Label>
+                        <Label for="exampleEmail">Người kiểm tra</Label>
                         <Input
                           type="select"
                           name="username"
@@ -321,6 +373,22 @@ export default class LabelingTool extends React.Component {
                           innerRef={(ref) => (this.note = ref)}
                           placeholder="Ghi chú kiểm tra"
                         />
+                      </FormGroup>
+                      <FormGroup>
+                        <Label for="exampleEmail">Người đi sửa lỗi</Label>
+                        <Input
+                          type="select"
+                          name="username"
+                          id="username"
+                          placeholder="Tên người thực hiện kiểm tra"
+                          innerRef={(ref) => (this.userfixed = ref)}
+                        >
+                          <option>Nguyễn Đình Tuấn Anh</option>
+                          <option>Hoàng Việt Cường</option>
+                          <option>Hùng Cường</option>
+                          <option>Tiến Tài</option>
+                          <option>Như Hoàng</option>
+                        </Input>
                       </FormGroup>
 
                       <Button type="submit" variant="primary">

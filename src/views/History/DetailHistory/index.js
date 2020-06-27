@@ -117,6 +117,7 @@ class DetailHistory extends React.Component {
         status: status,
       })
       .then(() => {
+        this.props.setItem(itemUpdate);
         this.setState(
           { isLoading: false, annotations: labeledData, item: itemUpdate },
           () => {

@@ -2,7 +2,7 @@
   "name": "paper-dashboard-react",
   "version": "1.1.0",
   "private": true,
-  "homepage": "https://kewin1807.github.io/electronic-detect/admin/dashboard",
+  "homepage": "https://kewin1807.github.io/electronic-detect",
   "dependencies": {
     "@tensorflow-models/coco-ssd": "2.0.3",
     "@tensorflow/tfjs": "2.0.0",
@@ -30,8 +30,8 @@
     "reactstrap": "8.0.0"
   },
   "scripts": {
-    "start": "node --max_old_space_size=4096 node_modules/.bin/react-scripts start",
-    "build": "node --max_old_space_size=4096 node_modules/.bin/react-scripts build",
+    "start": "node_modules/.bin/react-scripts start",
+    "build": "node_modules/.bin/react-scripts build",
     "test": "react-scripts test",
     "predeploy": "npm run build",
     "eject": "react-scripts eject",

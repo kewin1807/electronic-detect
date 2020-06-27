@@ -1,13 +1,5 @@
 import React from "react";
-import {
-
-  Table,
-  Row,
-  Col,
-  Modal,
-  ModalBody,
-  ModalHeader,
-} from "reactstrap";
+import { Table, Modal, ModalBody, ModalHeader } from "reactstrap";
 import { Button } from "react-bootstrap";
 import Map from "../../Map";
 class DroneList extends React.Component {
@@ -35,8 +27,9 @@ class DroneList extends React.Component {
     const { isOpen } = this.state;
     return (
       <Modal isOpen={isOpen} toggle={this.toggle} className="modal-lg">
-        <ModalHeader>Drone List</ModalHeader>
+        <ModalHeader>Danh sách Drone</ModalHeader>
         <ModalBody>
+          <ModalHeader>Quy trình bay drone</ModalHeader>
           <Map />
           <Table responsive>
             <thead className="text-primary">
