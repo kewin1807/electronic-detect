@@ -1,22 +1,18 @@
 import React from "react";
 import Item from "../components/Item";
 import firebase from "../../../api";
-import Loading from "../../../components/Loading";
-import {
-  ButtonDropdown,
-  DropdownItem,
-  DropdownMenu,
-  DropdownToggle,
-  Input,
-  InputGroup,
-  InputGroupAddon,
-  Row,
-  Col,
-  InputGroupText,
-} from "reactstrap";
+import { FormGroup, Row, Col, Label, Input } from "reactstrap";
 import constants from "../../../constants";
 import Pagination from "./Paginations";
 import DetailHistory from "../DetailHistory";
+import RingLoader from "react-spinners/RingLoader";
+import { css } from "@emotion/core";
+const override = css`
+  display: block;
+  margin: 0 auto;
+  border-color: red;
+  z-index: 1;
+`;
 export default class TotalHistory extends React.Component {
   loading = React.createRef();
   detailRef = React.createRef();
@@ -28,29 +24,13 @@ export default class TotalHistory extends React.Component {
     totalItems: 0,
     startSnapshot: null,
     endSnapshot: null,
+    isLoading: false,
   };
 
   componentDidMount() {
     this.getData();
   }
-  toggle = () => {
-    this.setState({
-      dropdownOpen: !this.state.dropdownOpen,
-    });
-  };
-
-  select = (event) => {
-    this.setState(
-      {
-        dropdownOpen: !this.state.dropdownOpen,
-        value: event.target.innerText,
-      },
-      () => {
-        this.querySearchHistory();
-      }
-    );
-  };
-  querySearchHistory = () => {
+  querySearchHistory = (e) => {
     if (this.timeOut) {
       clearTimeout(this.timeOut);
     }
@@ -61,30 +41,35 @@ export default class TotalHistory extends React.Component {
 
   getData = () => {
     const queryRef = firebase.firestore().collection("historyLabel");
-    if (this.loading && this.loading.current) {
-      this.loading.current.setLoading();
+    this.queryRef = queryRef;
+    this.setState({ isLoading: true });
+    if (this.date_start.value !== "") {
+      const timestamp1 = firebase.firestore.Timestamp.fromDate(
+        new Date(this.date_start.value)
+      );
+      this.queryRef = this.queryRef.where("createAt", ">=", timestamp1);
     }
-    if (this.state.value === "7 days") {
-      const firstDay = new Date();
-      const secondDay = new Date(firstDay.getTime() - 7 * 24 * 60 * 60 * 1000);
-      const timestamp1 = firebase.firestore.Timestamp.fromDate(firstDay);
-      const timestamp2 = firebase.firestore.Timestamp.fromDate(secondDay);
-      this.queryRef = queryRef
-        .where("createAt", "<=", timestamp1)
-        .where("createAt", ">=", timestamp2);
+    if (this.date_end.value !== "") {
+      const timestamp2 = firebase.firestore.Timestamp.fromDate(
+        new Date(this.date_end.value)
+      );
+      this.queryRef = this.queryRef.where("createAt", "<=", timestamp2);
     }
-    if (this.state.value === "1 Month") {
-      const firstDay = new Date();
-      const secondDay = new Date(firstDay.getTime() - 30 * 24 * 60 * 60 * 1000);
-      const timestamp1 = firebase.firestore.Timestamp.fromDate(firstDay);
-      const timestamp2 = firebase.firestore.Timestamp.fromDate(secondDay);
-      this.queryRef = queryRef
-        .where("createAt", "<=", timestamp1)
-        .where("createAt", ">=", timestamp2);
+    if (this.province.value !== "") {
+      this.queryRef = this.queryRef.where(
+        "province",
+        "==",
+        this.province.value
+      );
     }
-    if (this.state.value !== "1 Month" || this.state.value !== "7 days") {
-      this.queryRef = queryRef;
+    if (this.district.value !== "") {
+      this.queryRef = this.queryRef.where(
+        "district",
+        "==",
+        this.district.value
+      );
     }
+
     this.queryRef
       .orderBy("createAt", "desc")
       .get()
@@ -109,17 +94,16 @@ export default class TotalHistory extends React.Component {
                 endSnapshot: snapshots.docs[snapshots.docs.length - 1],
               },
               () => {
-                if (this.loading && this.loading.current) {
-                  this.loading.current.hideLoading();
-                }
+                this.setState({ isLoading: false });
               }
             );
           });
       })
       .catch((error) => {
-        if (this.loading && this.loading.current) {
-          this.loading.current.hideLoading();
-        }
+        console.log(error);
+        this.setState({ isLoading: false }, () => {
+          return alert("Đã có lỗi xảy ra");
+        });
       });
   };
 
@@ -151,56 +135,128 @@ export default class TotalHistory extends React.Component {
         );
       });
     }
-    return null;
+    return;
   };
   render() {
     return (
       <div className="content">
         <div style={{ alignItems: "flex-end", margin: 20 }}>
           <Row>
-            <Col>
-              <ButtonDropdown
-                isOpen={this.state.dropdownOpen}
-                toggle={this.toggle}
-              >
-                <DropdownToggle>{this.state.value}</DropdownToggle>
-                <DropdownMenu>
-                  <DropdownItem onClick={this.select}>7 days</DropdownItem>
-                  <DropdownItem onClick={this.select}>1 Month</DropdownItem>
-                  <DropdownItem onClick={this.select}>All</DropdownItem>
-                </DropdownMenu>
-              </ButtonDropdown>
+            <Col md={3}>
+              <FormGroup>
+                <Label for="exampleSelect">Tỉnh/Thành phố thực hiên</Label>
+                <Input
+                  type="select"
+                  name="select"
+                  id="exampleSelect"
+                  innerRef={(ref) => (this.province = ref)}
+                  onChange={this.querySearchHistory}
+                >
+                  <option>Hà Nội</option>
+                  <option>Đà Nẵng</option>
+                  <option>Cần Thơ</option>
+                  <option>Thành phố Hồ Chí Minh</option>
+                </Input>
+              </FormGroup>
             </Col>
-            <Col>
-              <form>
-                <InputGroup className="no-border">
-                  <Input placeholder="Search..." />
-                  <InputGroupAddon addonType="append">
-                    <InputGroupText>
-                      <i className="nc-icon nc-zoom-split" />
-                    </InputGroupText>
-                  </InputGroupAddon>
-                </InputGroup>
-              </form>
+            <Col md={3}>
+              <FormGroup>
+                <Label for="exampleSelect">Huyện/Quận</Label>
+                <Input
+                  type="select"
+                  name="select"
+                  id="exampleSelect"
+                  innerRef={(ref) => (this.district = ref)}
+                  onChange={this.querySearchHistory}
+                >
+                  <option>Quận Đống Đa</option>
+                  <option>Quận Thanh Xuân</option>
+                  <option>Quận Hai Bà Trưng</option>
+                  <option>Quận Ba Đình</option>
+                </Input>
+              </FormGroup>
+            </Col>
+
+            <Col md={3}>
+              <FormGroup>
+                <Label for="exampleDate">Thời gian (bắt đầu)</Label>
+                <Input
+                  innerRef={(ref) => (this.date_start = ref)}
+                  type="date"
+                  name="date"
+                  id="exampleDate"
+                  placeholder="date placeholder"
+                  onChange={this.querySearchHistory}
+                />
+              </FormGroup>
+            </Col>
+            <Col md={3}>
+              <FormGroup>
+                <Label for="exampleDate">Thời gian (kết thúc)</Label>
+                <Input
+                  innerRef={(ref) => (this.date_end = ref)}
+                  type="date"
+                  name="date"
+                  id="exampleDate"
+                  placeholder="date placeholder"
+                  onChange={this.querySearchHistory}
+                />
+              </FormGroup>
             </Col>
           </Row>
+          {/* <Row>
+            <Col md={3}>
+              <FormGroup>
+                <Label for="exampleEmail">Tên nhân viên</Label>
+                <Input
+                  type="select"
+                  name="username"
+                  id="username"
+                  placeholder="Tên người thực hiện kiểm tra"
+                  innerRef={(ref) => (this.username = ref)}
+                >
+                  <option disabled selected value>
+                    Tên công nhân
+                  </option>
+                  <option>Nguyễn Đình Tuấn Anh</option>
+                  <option>Hoàng Việt Cường</option>
+                  <option>Hùng Cường</option>
+                  <option>Tiến Tài</option>
+                  <option>Như Hoàng</option>
+                </Input>
+              </FormGroup>
+            </Col>
+          </Row> */}
         </div>
-        <div
-          id="mainContent"
-          className="container"
-          style={{
-            display: "grid",
-            gridTemplateColumns: "repeat(3, 1fr)",
-            gridGap: "10px",
-            gridAutoRows: "minMax(100px, auto)",
-          }}
-        >
-          {/* <Router>
+        {this.state.isLoading ? (
+          <div
+            style={{ flex: 1, justifyContent: "center", alignItems: "center" }}
+          >
+            <RingLoader
+              css={override}
+              size={150}
+              color={"#123abc"}
+              loading={this.state.isLoading}
+            />
+          </div>
+        ) : (
+          <div
+            id="mainContent"
+            className="container"
+            style={{
+              display: "grid",
+              gridTemplateColumns: "repeat(3, 1fr)",
+              gridGap: "10px",
+              gridAutoRows: "minMax(100px, auto)",
+            }}
+          >
+            {/* <Router>
             {this.renderItem()}
             <Route path="/admin/history:id" component={DetailHistory} />
           </Router> */}
-          {this.renderItem()}
-        </div>
+            {this.renderItem()}
+          </div>
+        )}
         {/* <div> */}
         {this.state.startSnapshot ? (
           <Pagination
@@ -214,9 +270,6 @@ export default class TotalHistory extends React.Component {
         ) : null}
 
         {/* </div> */}
-        <div style={{ zIndex: 1, alignItems: "center" }}>
-          <Loading ref={this.loading} />
-        </div>
         <DetailHistory ref={this.detailRef} />
       </div>
     );

@@ -12,14 +12,24 @@ import {
   Row,
   Col,
   Input,
+  Form,
+  FormGroup,
+  Label,
 } from "reactstrap";
 import MagicDropzone from "react-magic-dropzone";
 import { Button } from "react-bootstrap";
 import firebase from "../../api";
-import Loading from "../../components/Loading";
-import DatePicker from "react-datepicker";
+import RingLoader from "react-spinners/RingLoader";
+import { css } from "@emotion/core";
 import DroneList from "./DroneList";
+
 import "react-datepicker/dist/react-datepicker.css";
+const override = css`
+  display: block;
+  margin: 0 auto;
+  border-color: red;
+  z-index: 1;
+`;
 class Tracking extends Component {
   state = {
     btnDeviceId: null,
@@ -34,6 +44,7 @@ class Tracking extends Component {
     file: null,
     startDate: new Date(),
     address: "",
+    isLoading: false,
   };
 
   videoRef = React.createRef();
@@ -48,79 +59,85 @@ class Tracking extends Component {
       });
     });
   }
-  handleChange = (date) => {
-    this.setState({
-      startDate: date,
-    });
-  };
-  handleChangeAddress = (e) => {
-    this.setState({
-      address: e.target.value,
-    });
-  };
 
-  uploadFileToS3 = async () => {
-    if (this.state.file) {
-      const filename = `${new Date().toISOString()}.png`;
-      if (this.loadingRef && this.loadingRef.current) {
-        this.loadingRef.current.setLoading();
-      }
-      if (this.state.address === "") {
-        return alert("No information address");
-      }
-      if (!this.state.startDate) {
-        return alert("No information time");
-      }
-
-      const uploadTask = firebase
-        .storage()
-        .ref(`/images/${filename}`)
-        .put(this.state.file);
-      uploadTask.on(
-        "state_changed",
-        (snapShot) => {
-          //takes a snap shot of the process as it is happening
-          // console.log(snapShot);
-        },
-        (err) => {
-          //catches the errors
-          // console.log(err);
-        },
-        () => {
-          // gets the functions from storage refences the image storage in firebase by the children
-          // gets the download url then sets the image from firebase as the value for the imgUrl key:
-          firebase
-            .storage()
-            .ref(`/images/${filename}`)
-            .getDownloadURL()
-            .then((fireBaseUrl) => {
-              firebase
-                .firestore()
-                .collection("historyLabel")
-                .add({
-                  image: fireBaseUrl,
-                  bboxes: this.state.predictionsImage,
-                  createAt: firebase.firestore.Timestamp.fromDate(
-                    this.state.startDate
-                  ),
-                  address: this.state.address,
-                })
-                .then(() => {
-                  if (this.loadingRef && this.loadingRef.current) {
-                    this.loadingRef.current.hideLoading();
-                  }
-                  alert("Upload Success");
-                })
-                .catch((error) => {
-                  console.log(error);
-                  if (this.loadingRef && this.loadingRef.current) {
-                    this.loadingRef.current.hideLoading();
-                  }
-                });
-            });
-        }
-      );
+  uploadFileToS3 = async (e) => {
+    e.preventDefault();
+    if (!this.state.file) {
+      return alert("Bạn chưa nhập ảnh vùng cần kiểm tra");
     }
+    if (this.date.value === "" || !this.date.value) {
+      return alert("Bạn chưa nhập thời gian thực hiện kiểm tra");
+    }
+    if (this.province.value === "" || !this.province.value) {
+      return alert("Bạn chưa nhập tỉnh/thành phố thực hiện kiểm tra");
+    }
+    if (this.district.value === "" || !this.district.value) {
+      return alert("Bạn chưa nhập huyện/quận thực hiện kiểm tra");
+    }
+    if (this.username.value === "" || !this.username.value) {
+      return alert("Bạn chưa nhập tên người thực hiện kiểm tra");
+    }
+    if (this.address.value === "" || !this.address.value) {
+      return alert("Bạn chưa nhập địa chỉ thực hiện kiểm tra");
+    }
+    const filename = `${new Date().toISOString()}.png`;
+    const date = this.date.value;
+    const address = this.address.value;
+    const username = this.username.value;
+    const province = this.province.value;
+    const district = this.district.value;
+    const note = this.note.value;
+
+    this.setState({ isLoading: true });
+
+    const uploadTask = firebase
+      .storage()
+      .ref(`/images/${filename}`)
+      .put(this.state.file);
+    uploadTask.on(
+      "state_changed",
+      (snapShot) => {
+        //takes a snap shot of the process as it is happening
+        // console.log(snapShot);
+      },
+      (err) => {
+        //catches the errors
+        // console.log(err);
+      },
+      () => {
+        // gets the functions from storage refences the image storage in firebase by the children
+        // gets the download url then sets the image from firebase as the value for the imgUrl key:
+        firebase
+          .storage()
+          .ref(`/images/${filename}`)
+          .getDownloadURL()
+          .then((fireBaseUrl) => {
+            firebase
+              .firestore()
+              .collection("historyLabel")
+              .add({
+                image: fireBaseUrl,
+                bboxes: this.state.predictionsImage,
+                createAt: firebase.firestore.Timestamp.fromDate(new Date(date)),
+                address: address,
+                username: username,
+                province: province,
+                district: district,
+                note: note,
+                status: "Chưa hoàn thành",
+              })
+              .then(() => {
+                this.setState({ isLoading: false, preview: "", file: null });
+                alert("Đã cập nhật dữ liệu thành công");
+              })
+              .catch((error) => {
+                this.setState({ isLoading: false }, () => {
+                  alert("Đã có lỗi xảy ra");
+                });
+              });
+          });
+      }
+    );
   };
   onDrop = (accepted, rejected, links) => {
     this.setState({
@@ -332,106 +349,253 @@ class Tracking extends Component {
   };
   renderVideo = () => {
     return (
-      <div className="App">
-        <div id="preview">
-          <video
-            autoPlay
-            playsInline
-            muted
-            ref={this.videoRef}
-            width={this.state.width}
-            height={this.state.height}
-            className="fixed"
-          />
-          <canvas
-            ref={this.canvasRef}
-            width={this.state.width}
-            height={this.state.height}
-            className="fixed"
-          />
-        </div>
-        <div id="button-group">
-          <button id="btn-left" onClick={() => this.startVideo()}>
-            Start
-          </button>
-          <button id="btn-right" onClick={() => this.stopTracking()}>
-            Stop
-          </button>
-        </div>
-        {this.state.btnDeviceId && (
-          <div class="btn-device-container">
-            <p>Click button below to access back camera</p>
-            <div id="btnDeviceIdContainer">{this.state.btnDeviceId}</div>
+      <div>
+        <div className="App">
+          <div id="preview">
+            <video
+              autoPlay
+              playsInline
+              muted
+              ref={this.videoRef}
+              width={this.state.width}
+              height={this.state.height}
+              className="fixed"
+            />
+            <canvas
+              ref={this.canvasRef}
+              width={this.state.width}
+              height={this.state.height}
+              className="fixed"
+            />
           </div>
-        )}
-        {!this.state.model && (
-          <div
-            class="loader"
-            style={{
-              width: this.state.width,
-              height: this.state.height,
-            }}
+          <div id="button-group">
+            <button id="btn-left" onClick={() => this.startVideo()}>
+              Start
+            </button>
+            <button id="btn-right" onClick={() => this.stopTracking()}>
+              Stop
+            </button>
+          </div>
+          {this.state.btnDeviceId && (
+            <div class="btn-device-container">
+              <p>Click button below to access back camera</p>
+              <div id="btnDeviceIdContainer">{this.state.btnDeviceId}</div>
+            </div>
+          )}
+          {!this.state.model && (
+            <div
+              class="loader"
+              style={{
+                width: this.state.width,
+                height: this.state.height,
+              }}
+            >
+              Loading model...
+            </div>
+          )}
+        </div>
+        <Form
+          style={{ padding: 50 }}
+          onSubmit={(e) => {
+            e.preventDefault();
+            this.setState({ isLoading: true });
+            setTimeout(() => {
+              this.setState({ isLoading: false }, () => {
+                alert("Đã tải dữ liệu thành công");
+              });
+            }, 300);
+          }}
+        >
+          <FormGroup>
+            <Label for="exampleEmail">Username</Label>
+            <Input
+              type="select"
+              name="username"
+              id="username"
+              placeholder="Tên người thực hiện kiểm tra"
+              innerRef={(ref) => (this.username = ref)}
+            >
+              <option>Nguyễn Đình Tuấn Anh</option>
+              <option>Hoàng Việt Cường</option>
+              <option>Hùng Cường</option>
+              <option>Tiến Tài</option>
+              <option>Như Hoàng</option>
+            </Input>
+          </FormGroup>
+          <FormGroup>
+            <Label for="exampleSelect">Tỉnh/Thành phố thực hiên</Label>
+            <Input type="select" name="select" id="exampleSelect">
+              <option>Hà Nội</option>
+              <option>Đà Nẵng</option>
+              <option>Cần Thơ</option>
+              <option>Thành phố Hồ Chí Minh</option>
+            </Input>
+          </FormGroup>
+          <FormGroup>
+            <Label for="exampleSelect">Huyện/Quận</Label>
+            <Input type="select" name="select" id="exampleSelect">
+              <option>Quận Đống Đa</option>
+              <option>Quận Thanh Xuân</option>
+              <option>Quận Hai Bà Trưng</option>
+              <option>Quận Ba Đình</option>
+            </Input>
+          </FormGroup>
+
+          <FormGroup>
+            <Label for="exampleDate">Thời gian thực hiện</Label>
+            <Input
+              type="date"
+              name="date"
+              id="exampleDate"
+              placeholder="date placeholder"
+            />
+          </FormGroup>
+          <FormGroup>
+            <Label for="exampleEmail">Ghi chú</Label>
+            <Input type="text" name="note" id="note" placeholder="Ghi chú" />
+          </FormGroup>
+          <Button
+            style={{ paddingHorizontal: 20 }}
+            variant="primary"
+            // onClick={this.uploadFileToS3}
           >
-            Loading model...
-          </div>
-        )}
-        <footer>&copy; FourOhFour 2019</footer>
+            Submit
+          </Button>
+        </Form>
       </div>
     );
   };
   renderImage = () => {
     return (
-      <div
-        style={{ flex: 1, justifyContent: "center", alignContent: "center" }}
-        className="Dropzone-page"
-      >
-        <div style={{ width: 468 }}>
-          <DatePicker
-            selected={this.state.startDate}
-            onChange={(date) => this.handleChange(date)}
-            placeholderText="Chọn ngày phát hiện sự cố..."
-          />
-        </div>
+      <Row>
+        <Col md="6">
+          <div
+            style={{
+              flex: 1,
+              justifyContent: "center",
+              alignContent: "center",
+            }}
+            className="Dropzone-page"
+          >
+            <MagicDropzone
+              className="Dropzone"
+              accept="image/jpeg, image/png, .jpg, .jpeg, .png"
+              multiple={false}
+              onDrop={this.onDrop}
+            >
+              {this.state.preview ? (
+                <img
+                  alt="upload preview"
+                  onLoad={this.onImageChange}
+                  className="Dropzone-img"
+                  src={this.state.preview}
+                />
+              ) : (
+                "Choose or drop a file."
+              )}
+            </MagicDropzone>
 
-        <div style={{ paddingTop: 20 }}>
-          <Input
-            style={{ width: 468 }}
-            placeholder="Địa điểm "
-            onChange={(e) => this.handleChangeAddress(e)}
-          />
-        </div>
-        <MagicDropzone
-          className="Dropzone"
-          accept="image/jpeg, image/png, .jpg, .jpeg, .png"
-          multiple={false}
-          onDrop={this.onDrop}
-        >
-          {this.state.preview ? (
-            <img
-              alt="upload preview"
-              onLoad={this.onImageChange}
-              className="Dropzone-img"
-              src={this.state.preview}
-            />
-          ) : (
-            "Choose or drop a file."
-          )}
-        </MagicDropzone>
+            {this.state.preview ? <canvas id="canvas" /> : null}
+          </div>
+        </Col>
+        <Col md="6">
+          <Form style={{ padding: 50 }} onSubmit={this.uploadFileToS3}>
+            <FormGroup>
+              <Label for="exampleEmail">Username</Label>
+              <Input
+                type="select"
+                name="username"
+                id="username"
+                placeholder="Tên người thực hiện kiểm tra"
+                innerRef={(ref) => (this.username = ref)}
+              >
+                <option>Nguyễn Đình Tuấn Anh</option>
+                <option>Hoàng Việt Cường</option>
+                <option>Hùng Cường</option>
+                <option>Tiến Tài</option>
+                <option>Như Hoàng</option>
+              </Input>
+            </FormGroup>
+            <FormGroup>
+              <Label for="exampleSelect">Tỉnh/Thành phố thực hiên</Label>
+              <Input
+                type="select"
+                name="select"
+                id="exampleSelect"
+                innerRef={(ref) => (this.province = ref)}
+              >
+                <option>Hà Nội</option>
+                <option>Đà Nẵng</option>
+                <option>Cần Thơ</option>
+                <option>Thành phố Hồ Chí Minh</option>
+              </Input>
+            </FormGroup>
+            <FormGroup>
+              <Label for="exampleSelect">Huyện/Quận</Label>
+              <Input
+                type="select"
+                name="select"
+                id="exampleSelect"
+                innerRef={(ref) => (this.district = ref)}
+              >
+                <option>Quận Đống Đa</option>
+                <option>Quận Thanh Xuân</option>
+                <option>Quận Hai Bà Trưng</option>
+                <option>Quận Ba Đình</option>
+              </Input>
+            </FormGroup>
+            <FormGroup>
+              <Label for="exampleEmail">Địa chỉ</Label>
+              <Input
+                innerRef={(ref) => (this.address = ref)}
+                type="text"
+                name="address"
+                id="address"
+                placeholder="Địa chỉ cụ thể"
+              />
+            </FormGroup>
 
-        {this.state.preview ? <canvas id="canvas" /> : null}
+            <FormGroup>
+              <Label for="exampleDate">Thời gian thực hiện</Label>
+              <Input
+                innerRef={(ref) => (this.date = ref)}
+                type="date"
+                name="date"
+                id="exampleDate"
+                placeholder="date placeholder"
+              />
+            </FormGroup>
+            <FormGroup>
+              <Label for="exampleEmail">Ghi chú</Label>
+              <Input
+                type="text"
+                name="note"
+                id="note"
+                placeholder="Ghi chú kiểm tra"
+                innerRef={(ref) => (this.note = ref)}
+              />
+            </FormGroup>
 
-        <Button
-          style={{ padding: 20 }}
-          variant="primary"
-          onClick={this.uploadFileToS3}
-        >
-          Submit
-        </Button>
-      </div>
+            <Button type="submit" variant="primary">
+              Gửi kết quả
+            </Button>
+          </Form>
+        </Col>
+      </Row>
     );
   };
 
   renderAll() {
+    if (this.state.isLoading) {
+      return (
+        <RingLoader
+          css={override}
+          size={150}
+          color={"#123abc"}
+          loading={this.state.isLoading}
+        />
+      );
+    }
     if (this.state.setImage === 1 && this.state.setVideo === 0) {
       return this.renderImage();
     }
@@ -448,8 +612,13 @@ class Tracking extends Component {
         <Col md="12">
           <Card>
             <CardHeader>
-              <CardTitle tag="h5">Tracking</CardTitle>
-              <p className="card-category">Handcrafted by our colleague </p>
+              <CardTitle tag="h5">
+                Phát hiện sự cố, thành phần từ động
+              </CardTitle>
+              <p className="card-category">
+                Đây là bản demo nên model, nhãn được lấy từ trên mạng, có thể
+                test bằng các ảnh thay thế như các đồ vật trong gia đình,..
+              </p>
             </CardHeader>
 
             <CardBody>
@@ -468,23 +637,22 @@ class Tracking extends Component {
                         // this.setState({ setImage: 0, setVideo: 1 });
                       }}
                     >
-                      Check Video
+                      Check bằng camerra
                     </Button>
                     <Button
                       variant="success"
-                      style={{ padding: 20 }}
+                      style={{ padding: 20, marginLeft: 20 }}
                       onClick={() => {
                         this.setState({ setImage: 1, setVideo: 0 });
                       }}
                     >
-                      Check Image
+                      Check bằng ảnh
                     </Button>
                   </Row>
                   {this.renderAll()}
                 </Col>
               </Row>
 
-              <Loading ref={this.loadingRef} />
               <DroneList
                 ref={this.droneList}
                 checkVideo={() => this.setState({ setImage: 0, setVideo: 1 })}

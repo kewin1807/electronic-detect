@@ -6,16 +6,27 @@ import {
   CardTitle,
   Row,
   Col,
+  Form,
+  FormGroup,
+  Label,
   Input,
+  Button,
 } from "reactstrap";
 import { Annotator } from "image-labeler-react";
 import "./Label.css";
 import MagicDropzone from "react-magic-dropzone";
-import { Button } from "react-bootstrap";
 import firebase from "../../api/";
-import Loading from "../../components/Loading";
-import DatePicker from "react-datepicker";
+import RingLoader from "react-spinners/RingLoader";
+import { css } from "@emotion/core";
+
 import "react-datepicker/dist/react-datepicker.css";
+const override = css`
+  display: block;
+  margin: 0 auto;
+  border-color: red;
+  z-index: 1;
+`;
+
 export default class LabelingTool extends React.Component {
   state = {
     preview: "",
@@ -24,6 +35,7 @@ export default class LabelingTool extends React.Component {
     file: null,
     startDate: new Date(),
     address: "",
+    isLoading: false,
   };
   annoRef = React.createRef();
   loadingref = React.createRef();
@@ -46,66 +58,88 @@ export default class LabelingTool extends React.Component {
   };
 
   uploadAnnotation = () => {
-    if (this.state.file) {
-      if (this.state.address === "") {
-        return alert("No information address");
-      }
-      if (!this.state.startDate) {
-        return alert("No information date to complete");
-      }
-      const filename = `${new Date().toISOString()}.png`;
-      if (this.loadingRef && this.loadingRef.current) {
-        this.loadingRef.current.setLoading();
-      }
-      const uploadTask = firebase
-        .storage()
-        .ref(`/images/${filename}`)
-        .put(this.state.file);
-      uploadTask.on(
-        "state_changed",
-        (snapShot) => {
-          //takes a snap shot of the process as it is happening
-          // console.log(snapShot);
-        },
-        (err) => {
-          //catches the errors
-          // console.log(err);
-        },
-        () => {
-          // gets the functions from storage refences the image storage in firebase by the children
-          // gets the download url then sets the image from firebase as the value for the imgUrl key:
-          firebase
-            .storage()
-            .ref(`/images/${filename}`)
-            .getDownloadURL()
-            .then((fireBaseUrl) => {
-              firebase
-                .firestore()
-                .collection("historyLabel")
-                .add({
-                  image: fireBaseUrl,
-                  bboxes: this.state.annotations.boxes,
-                  createAt: firebase.firestore.Timestamp.fromDate(
-                    this.state.startDate
-                  ),
-                  address: this.state.address,
-                })
-                .then(() => {
-                  if (this.loadingRef && this.loadingRef.current) {
-                    this.loadingRef.current.hideLoading();
-                  }
-                  alert("Upload Success");
-                  this.setState({ preview: "", file: null });
-                })
-                .catch((error) => {
-                  if (this.loadingRef && this.loadingRef.current) {
-                    this.loadingRef.current.hideLoading();
-                  }
-                });
-            });
-        }
-      );
+    if (!this.state.file) {
+      return alert("Bạn chưa nhập ảnh vùng cần kiểm tra");
     }
+    if (this.date.value === "" || !this.date.value) {
+      return alert("Bạn chưa nhập thời gian thực hiện kiểm tra");
+    }
+    if (this.province.value === "" || !this.province.value) {
+      return alert("Bạn chưa nhập tỉnh/thành phố thực hiện kiểm tra");
+    }
+    if (this.district.value === "" || !this.district.value) {
+      return alert("Bạn chưa nhập huyện/quận thực hiện kiểm tra");
+    }
+    if (this.username.value === "" || !this.username.value) {
+      return alert("Bạn chưa nhập tên người thực hiện kiểm tra");
+    }
+    if (this.address.value === "" || !this.address.value) {
+      return alert("Bạn chưa nhập địa chỉ thực hiện kiểm tra");
+    }
+    const filename = `${new Date().toISOString()}.png`;
+    const date = this.date.value;
+    const address = this.address.value;
+    const username = this.username.value;
+    const province = this.province.value;
+    const district = this.district.value;
+    const note = this.note.value;
+    if (this.state.isLoading === false) {
+      this.setState({ isLoading: true });
+    }
+
+    const uploadTask = firebase
+      .storage()
+      .ref(`/images/${filename}`)
+      .put(this.state.file);
+    uploadTask.on(
+      "state_changed",
+      (snapShot) => {
+        //takes a snap shot of the process as it is happening
+        // console.log(snapShot);
+      },
+      (err) => {
+        //catches the errors
+        // console.log(err);
+      },
+      () => {
+        // gets the functions from storage refences the image storage in firebase by the children
+        // gets the download url then sets the image from firebase as the value for the imgUrl key:
+        firebase
+          .storage()
+          .ref(`/images/${filename}`)
+          .getDownloadURL()
+          .then((fireBaseUrl) => {
+            firebase
+              .firestore()
+              .collection("historyLabel")
+              .add({
+                image: fireBaseUrl,
+                bboxes: this.state.annotations.boxes,
+                createAt: firebase.firestore.Timestamp.fromDate(new Date(date)),
+                address: address,
+                username: username,
+                province: province,
+                district: district,
+                note: note,
+                status: "Chưa hoàn thành",
+              })
+              .then(() => {
+                this.setState({
+                  isLoading: false,
+                  preview: "",
+                  file: null,
+                  annotations: null,
+                });
+                alert("Đã cập nhật dữ liệu thành công");
+              })
+              .catch((error) => {
+                this.setState({ isLoading: false }, () => {
+                  alert("Đã có lỗi xảy ra");
+                });
+              });
+          });
+      }
+    );
   };
 
   renderLabelData = () => {
@@ -129,100 +163,176 @@ export default class LabelingTool extends React.Component {
       });
     }
   };
+  onFormSubmit = (e) => {
+    e.preventDefault();
+    if (this.annoRef && this.annoRef.current) {
+      this.setState(
+        {
+          annotations: this.annoRef.current.getPostData(),
+        },
+        () => {
+          this.uploadAnnotation();
+        }
+      );
+    }
+  };
 
   render() {
     return (
       <div className="content">
-        <Col md="12">
-          <Card>
-            <CardHeader>
-              <CardTitle tag="h5">Label Tool</CardTitle>
-              <p className="card-category">Handcrafted by our colleague </p>
-            </CardHeader>
+        {this.state.isLoading ? (
+          <RingLoader
+            css={override}
+            size={150}
+            color={"#123abc"}
+            loading={this.state.isLoading}
+          />
+        ) : (
+          <Col md="12">
+            <Card>
+              <CardHeader>
+                <CardTitle tag="h5">Phát hiện sự cố thủ công</CardTitle>
+                <p className="card-category">
+                  Người dùng trực tiếp phát hiện, trong trường hợp hệ thống ko
+                  phát hiện ra
+                </p>
+              </CardHeader>
 
-            <CardBody>
-              <Row>
-                <Col md="12">
-                  <div className="Dropzone-page">
-                    {this.state.preview === "" ? (
-                      <MagicDropzone
-                        className="Dropzone"
-                        accept="image/jpeg, image/png, .jpg, .jpeg, .png"
-                        multiple={false}
-                        onDrop={this.onDrop}
-                      >
-                        "Choose or drop a file."
-                      </MagicDropzone>
-                    ) : (
-                      <div>
-                        <div style={{ width: 468, paddingLeft: 20 }}>
-                          <DatePicker
-                            selected={this.state.startDate}
-                            onChange={(date) => this.handleChange(date)}
-                            placeholderText="Chọn ngày phát hiện sự cố..."
-                          />
-                        </div>
-                        <div className="App">
-                          {/* <InputGroup style={{ width: 468, paddingTop: 20 }}> */}
-                          <div style={{ padding: 20 }}>
-                            <Input
-                              style={{ width: 468 }}
-                              placeholder="Địa điểm "
-                              onChange={(e) => this.handleChangeAddress(e)}
-                            />
-                          </div>
-                          {/* </InputGroup> */}
-                          <Row>
-                            <Col md="9">
-                              <Annotator
-                                ref={this.annoRef}
-                                height={600}
-                                width={600}
-                                imageUrl={this.state.preview}
-                                asyncUpload={async (labeledData) => {
-                                  this.setState(
-                                    { annotations: labeledData },
-                                    () => {
-                                      this.uploadAnnotation();
-                                    }
-                                  );
-                                  // if (this.annoRef && this.annoRef.current) {
-                                  //   this.annoRef.current.onDeleteAll();
-                                  // }
-                                  // upload labeled data
-                                }}
-                                defaultBoxes={this.state.defaultBoxs}
-                                types={[
-                                  "Cable",
-                                  "Capacitor",
-                                  "Brushing",
-                                  "Connector",
-                                ]}
-                                defaultType={"Cable"}
-                              />
-                              <Button
-                                variant="primary"
-                                onClick={() => {
-                                  this.setState({ preview: "" });
-                                }}
+              <CardBody>
+                <Row>
+                  <Col md="6">
+                    <div className="Dropzone-page">
+                      {this.state.preview === "" ? (
+                        <MagicDropzone
+                          className="Dropzone"
+                          accept="image/jpeg, image/png, .jpg, .jpeg, .png"
+                          multiple={false}
+                          onDrop={this.onDrop}
+                        >
+                          "Choose or drop a file."
+                        </MagicDropzone>
+                      ) : (
+                        <div>
+                          <div className="App">
+                            <Row>
+                              <Col md="9">
+                                <Annotator
+                                  ref={this.annoRef}
+                                  height={500}
+                                  width={500}
+                                  imageUrl={this.state.preview}
+                                  defaultBoxes={this.state.defaultBoxs}
+                                  types={[
+                                    "Cable",
+                                    "Capacitor",
+                                    "Brushing",
+                                    "Connector",
+                                  ]}
+                                  defaultType={"Cable"}
+                                />
+                              </Col>
+                              <Col
+                                md="3"
+                                style={{ marginTop: 30, padding: 30 }}
                               >
-                                Choose again
-                              </Button>
-                            </Col>
-                            <Col md="3" style={{ marginTop: 30, padding: 30 }}>
-                              {this.renderLabelData()}
-                            </Col>
-                          </Row>
+                                {this.renderLabelData()}
+                              </Col>
+                            </Row>
+                          </div>
                         </div>
-                      </div>
-                    )}
-                  </div>
-                </Col>
-              </Row>
-            </CardBody>
-          </Card>
-        </Col>
-        <Loading ref={this.loadingref} />
+                      )}
+                    </div>
+                  </Col>
+                  <Col md="6">
+                    <Form style={{ padding: 50 }} onSubmit={this.onFormSubmit}>
+                      <FormGroup>
+                        <Label for="exampleEmail">Username</Label>
+                        <Input
+                          type="select"
+                          name="username"
+                          id="username"
+                          placeholder="Tên người thực hiện kiểm tra"
+                          innerRef={(ref) => (this.username = ref)}
+                        >
+                          <option>Nguyễn Đình Tuấn Anh</option>
+                          <option>Hoàng Việt Cường</option>
+                          <option>Hùng Cường</option>
+                          <option>Tiến Tài</option>
+                          <option>Như Hoàng</option>
+                        </Input>
+                      </FormGroup>
+                      <FormGroup>
+                        <Label for="exampleSelect">
+                          Tỉnh/Thành phố thực hiên
+                        </Label>
+                        <Input
+                          type="select"
+                          name="select"
+                          id="exampleSelect"
+                          innerRef={(ref) => (this.province = ref)}
+                        >
+                          <option>Hà Nội</option>
+                          <option>Đà Nẵng</option>
+                          <option>Cần Thơ</option>
+                          <option>Thành phố Hồ Chí Minh</option>
+                        </Input>
+                      </FormGroup>
+                      <FormGroup>
+                        <Label for="exampleSelect">Huyện/Quận</Label>
+                        <Input
+                          type="select"
+                          name="select"
+                          id="exampleSelect"
+                          innerRef={(ref) => (this.district = ref)}
+                        >
+                          <option>Quận Đống Đa</option>
+                          <option>Quận Thanh Xuân</option>
+                          <option>Quận Hai Bà Trưng</option>
+                          <option>Quận Ba Đình</option>
+                        </Input>
+                      </FormGroup>
+                      <FormGroup>
+                        <Label for="exampleEmail">Trụ điện</Label>
+                        <Input
+                          innerRef={(ref) => (this.address = ref)}
+                          type="text"
+                          name="address"
+                          id="address"
+                          placeholder="Địa chỉ cụ thể"
+                        />
+                      </FormGroup>
+
+                      <FormGroup>
+                        <Label for="exampleDate">Thời gian thực hiện</Label>
+                        <Input
+                          innerRef={(ref) => (this.date = ref)}
+                          type="date"
+                          name="date"
+                          id="exampleDate"
+                          placeholder="date placeholder"
+                        />
+                      </FormGroup>
+                      <FormGroup>
+                        <Label for="exampleEmail">Ghi chú</Label>
+                        <Input
+                          type="text"
+                          name="note"
+                          id="note"
+                          innerRef={(ref) => (this.note = ref)}
+                          placeholder="Ghi chú kiểm tra"
+                        />
+                      </FormGroup>
+
+                      <Button type="submit" variant="primary">
+                        Gửi kết quả
+                      </Button>
+                    </Form>
+                  </Col>
+                </Row>
+              </CardBody>
+            </Card>
+          </Col>
+        )}
       </div>
     );
   }

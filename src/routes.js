@@ -71,7 +71,7 @@ var routes = [
     name: "Table List",
     icon: "nc-icon nc-tile-56",
     component: TableList,
-    // hidden: true,
+    hidden: true,
     layout: "/admin",
   },
   {
@@ -84,21 +84,21 @@ var routes = [
   },
   {
     path: "/tracking",
-    name: "Tracking",
+    name: "Nhận diện tự động",
     icon: "nc-icon nc-caps-small",
     component: Tracking,
     layout: "/admin",
   },
   {
     path: "/labelTool",
-    name: "Labeling Tool",
+    name: "Nhận diện thủ công",
     icon: "nc-icon nc-spaceship",
     component: LabelingTool,
     layout: "/admin",
   },
   {
     path: "/history",
-    name: "History",
+    name: "Lịch sử nhận diện",
     icon: "nc-icon nc-spaceship",
     component: TotalHistory,
     layout: "/admin",

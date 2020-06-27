@@ -1,9 +1,6 @@
 import React from "react";
 import {
-  Card,
-  CardHeader,
-  CardBody,
-  CardTitle,
+
   Table,
   Row,
   Col,
