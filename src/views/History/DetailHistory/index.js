@@ -154,6 +154,13 @@ class DetailHistory extends React.Component {
       this.updateData(uploadedData);
     }
   };
+  drawLabelEnd = () => {
+    if (this.annoRef && this.annoRef.current) {
+      this.setState({
+        annotations: this.annoRef.current.getPostData(),
+      });
+    }
+  };
 
   render() {
     const { item, isOpen } = this.state;
@@ -195,6 +202,7 @@ class DetailHistory extends React.Component {
                               width={500}
                               imageUrl={item.image}
                               defaultBoxes={item.bboxes}
+                              drawLabelEnd={this.drawLabelEnd}
                               types={[
                                 "Cable",
                                 "Capacitor",
