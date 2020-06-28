@@ -15,9 +15,10 @@ import {
   Form,
   FormGroup,
   Label,
+  Table,
+  Button,
 } from "reactstrap";
 import MagicDropzone from "react-magic-dropzone";
-import { Button } from "react-bootstrap";
 import firebase from "../../api";
 import RingLoader from "react-spinners/RingLoader";
 import { css } from "@emotion/core";
@@ -30,6 +31,8 @@ const override = css`
   border-color: red;
   z-index: 1;
 `;
+
+const labels = ["Dây sứ bị đứt"];
 class Tracking extends Component {
   state = {
     btnDeviceId: null,
@@ -155,6 +158,36 @@ class Tracking extends Component {
     this.setState({ file: file });
   };
 
+  renderTableVideo = () => {
+    if (this.state.predictionVideo && this.state.predictionVideo.length > 0) {
+      return (
+        <Table responsive>
+          <thead className="text-primary">
+            <tr>
+              <th>Số thứ tự</th>
+              <th>Lỗi gì</th>
+              <th>Mức độ nghiêm trọng</th>
+              <th>Ghi chú</th>
+            </tr>
+          </thead>
+          <tbody>
+            {this.state.predictionVideo.map((item, index) => {
+              return (
+                <tr key={index.toString()}>
+                  <td>{`${index + 1}`}</td>
+                  <td>{labels[0]}</td>
+
+                  <td>{`${Number(item.score).toFixed(2)} %`}</td>
+                  <td>Lỗi cơ bản</td>
+                </tr>
+              );
+            })}
+          </tbody>
+        </Table>
+      );
+    }
+  };
+
   cropToCanvas = (image, canvas, ctx) => {
     const naturalWidth = image.naturalWidth;
     const naturalHeight = image.naturalHeight;
@@ -204,7 +237,7 @@ class Tracking extends Component {
       // Draw the label background.
       ctx.fillStyle = "#00FFFF";
       const textWidth = ctx.measureText(
-        `${prediction.class} - ${Number(prediction.score.toFixed(2))}`
+        `${labels[0]} - ${Number(prediction.score.toFixed(2))}`
       ).width;
       const textHeight = parseInt(font, 10); // base 10
       ctx.fillRect(x, y, textWidth + 4, textHeight + 4);
@@ -216,7 +249,7 @@ class Tracking extends Component {
       // Draw the text last to ensure it's on top.
       ctx.fillStyle = "#000000";
       ctx.fillText(
-        `${prediction.class} - ${Number(prediction.score.toFixed(2))}`,
+        `${labels[0]} - ${Number(prediction.score.toFixed(2))}`,
         x,
         y
       );
@@ -235,11 +268,12 @@ class Tracking extends Component {
       let predictionsImage = [];
       predictions.forEach((prediction) => {
         const obj = {
-          annotation: prediction.class,
+          annotation: labels[0],
           h: prediction.bbox[3],
           w: prediction.bbox[2],
           y: prediction.bbox[1],
           x: prediction.bbox[0],
+          score: Number(prediction.score.toFixed(2)),
         };
         predictionsImage.push(obj);
       });
@@ -308,11 +342,40 @@ class Tracking extends Component {
     if (video && video.readyState >= 3) {
       model.detect(video).then((predictions) => {
         this.renderPredictions(predictions);
-
+        this.setState({ predictionVideo: predictions });
         requestAnimationFrame(() => {
           this.detectFrame(video, model);
         });
       });
+    }
+  };
+  renderLabelData = () => {
+    if (this.state.predictionsImage && this.state.predictionsImage.length > 0) {
+      return (
+        <Table responsive>
+          <thead className="text-primary">
+            <tr>
+              <th>Số thứ tự</th>
+              <th>Lỗi gì</th>
+              <th>Mức độ nghiêm trọng</th>
+              <th>Ghi chú</th>
+            </tr>
+          </thead>
+          <tbody>
+            {this.state.predictionsImage.map((item, index) => {
+              return (
+                <tr key={index.toString()}>
+                  <td>{`${index + 1}`}</td>
+                  <td>{item.annotation}</td>
+
+                  <td>{`${item.score} %`}</td>
+                  <td>Lỗi cơ bản</td>
+                </tr>
+              );
+            })}
+          </tbody>
+        </Table>
+      );
     }
   };
 
@@ -370,10 +433,10 @@ class Tracking extends Component {
           </div>
           <div id="button-group">
             <button id="btn-left" onClick={() => this.startVideo()}>
-              Start
+              Bắt đầu
             </button>
             <button id="btn-right" onClick={() => this.stopTracking()}>
-              Stop
+              Dừng lại
             </button>
           </div>
           {this.state.btnDeviceId && (
@@ -394,6 +457,7 @@ class Tracking extends Component {
             </div>
           )}
         </div>
+        {this.renderTableVideo()}
         <Form
           style={{ padding: 50 }}
           onSubmit={(e) => {
@@ -416,10 +480,6 @@ class Tracking extends Component {
               innerRef={(ref) => (this.username = ref)}
             >
               <option>Nguyễn Đình Tuấn Anh</option>
-              <option>Hoàng Việt Cường</option>
-              <option>Hùng Cường</option>
-              <option>Tiến Tài</option>
-              <option>Như Hoàng</option>
             </Input>
           </FormGroup>
           <FormGroup>
@@ -459,7 +519,7 @@ class Tracking extends Component {
             variant="primary"
             // onClick={this.uploadFileToS3}
           >
-            Submit
+            Gửi kết qủa
           </Button>
         </Form>
       </div>
@@ -496,6 +556,8 @@ class Tracking extends Component {
             </MagicDropzone>
 
             {this.state.preview ? <canvas id="canvas" /> : null}
+
+            {this.renderLabelData()}
           </div>
         </Col>
         <Col md="6">

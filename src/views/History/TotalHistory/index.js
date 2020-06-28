@@ -130,6 +130,7 @@ export default class TotalHistory extends React.Component {
             key={key}
             history={history}
             detailRef={this.detailRef}
+            getData={this.getData}
           />
         );
       });
@@ -269,7 +270,6 @@ export default class TotalHistory extends React.Component {
         ) : null}
 
         {/* </div> */}
-        
       </div>
     );
   }

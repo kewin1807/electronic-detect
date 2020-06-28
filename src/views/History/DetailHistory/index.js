@@ -13,12 +13,16 @@ import {
   Form,
   Label,
   Button,
+  Table,
+  ModalFooter,
+  ModalHeader,
 } from "reactstrap";
 import { Annotator } from "image-labeler-react";
 import firebase from "../../../api";
 import "react-datepicker/dist/react-datepicker.css";
 import RingLoader from "react-spinners/RingLoader";
 import { css } from "@emotion/core";
+
 const override = css`
   display: block;
   margin: 0 auto;
@@ -36,6 +40,7 @@ class DetailHistory extends React.Component {
       item: null,
       startDate: null,
       isLoading: false,
+      modalDelete: false,
     };
   }
   annoRef = React.createRef();
@@ -48,6 +53,16 @@ class DetailHistory extends React.Component {
   toggle = () => {
     this.setState({ isOpen: !this.state.isOpen });
   };
+  toogleDelete = () => {
+    this.setState({ modalDelete: !this.state.modalDelete });
+  };
+  setModalDeleteOpen = () => {
+    this.setState({ modalDelete: true });
+  };
+  setModalDeleteClose = () => {
+    this.setState({ modalDelete: false });
+  };
+
   setStateAnnotation = (item) => {
     this.setState({
       item: item,
@@ -55,26 +70,85 @@ class DetailHistory extends React.Component {
       defaultBoxs: item.bboxes,
     });
   };
+  removeHistory = () => {
+    const { item } = this.state;
+    this.setModalDeleteClose();
+    if (item && item.id) {
+      firebase
+        .firestore()
+        .collection("historyLabel")
+        .doc(item.id)
+        .delete()
+        .then(() => {
+          const { getData } = this.props;
+          if (getData) {
+            getData();
+            this.setOpenClose();
+          }
+        })
+        .catch((error) => {
+          alert("Đã xảy ra lỗi");
+        });
+    }
+  };
 
   renderLabelData = () => {
     if (
       this.state.annotations.boxes &&
       this.state.annotations.boxes.length > 0
     ) {
-      return this.state.annotations.boxes.map((item, index) => {
-        return (
-          <div key={index}>
-            <Button
-              variant="primary"
-              // onClick={() => {
-              //   this.setState({ defaultBoxs: [item] }, () => {});
-              // }}
-            >
-              {item.annotation}
-            </Button>
-          </div>
-        );
-      });
+      return (
+        <Table responsive>
+          <thead className="text-primary">
+            <tr>
+              <th>Số thứ tự</th>
+              <th>Vị trí bị lỗi</th>
+              <th>Lỗi gì</th>
+              <th>Mức độ nghiêm trọng</th>
+            </tr>
+          </thead>
+          <tbody>
+            {this.state.annotations.boxes.map((item, index) => {
+              return (
+                <tr key={index.toString()}>
+                  <td>{`${index + 1}`}</td>
+                  <td>{item.annotation}</td>
+                  <td>
+                    <FormGroup>
+                      <Input
+                        type="select"
+                        name="select"
+                        id="exampleSelect"
+                        innerRef={(ref) => (this.error = ref)}
+                      >
+                        <option>Bị gãy</option>
+                        <option>Bị vỡ</option>
+                        <option>Bị đổ</option>
+                        <option>Bị cháy</option>
+                      </Input>
+                    </FormGroup>
+                  </td>
+                  <td>
+                    <FormGroup>
+                      <Input
+                        type="select"
+                        name="select"
+                        id="exampleSelect"
+                        innerRef={(ref) => (this.errorate = ref)}
+                      >
+                        <option>Vấn đề nhẹ, giải quyết nhanh</option>
+                        <option>Lỗi vừa, giải quyết sau một giờ</option>
+                        <option>Lỗi nặng, cần nhiều người</option>
+                        <option>Lỗi cực nặng, cần họp</option>
+                      </Input>
+                    </FormGroup>
+                  </td>
+                </tr>
+              );
+            })}
+          </tbody>
+        </Table>
+      );
     }
   };
   updateData = (labeledData) => {
@@ -212,15 +286,24 @@ class DetailHistory extends React.Component {
                               defaultType={"Dây cáp điện"}
                             />
                           </Col>
-                          <Col md="3" style={{ marginTop: 30, padding: 30 }}>
-                            {this.renderLabelData()}
+                          <Col md="3">
+                            <Button
+                              style={{ padding: 20 }}
+                              variant="primary"
+                              onClick={this.setModalDeleteOpen}
+                            >
+                              Xoá dữ liệu
+                            </Button>
                           </Col>
+                        </Row>
+                        <Row>
+                          <Col md="11">{this.renderLabelData()}</Col>
                         </Row>
                       </Col>
                     </Row>
                     <Form style={{ padding: 50 }} onSubmit={this.onSubmit}>
                       <FormGroup>
-                        <Label for="exampleEmail">Username</Label>
+                        <Label for="exampleEmail">Người thực hiện</Label>
                         <Input
                           defaultValue={item.username}
                           type="select"
@@ -230,10 +313,6 @@ class DetailHistory extends React.Component {
                           innerRef={(ref) => (this.username = ref)}
                         >
                           <option>Nguyễn Đình Tuấn Anh</option>
-                          <option>Hoàng Việt Cường</option>
-                          <option>Hùng Cường</option>
-                          <option>Tiến Tài</option>
-                          <option>Như Hoàng</option>
                         </Input>
                       </FormGroup>
                       <FormGroup>
@@ -321,7 +400,7 @@ class DetailHistory extends React.Component {
                         style={{ paddingHorizontal: 20 }}
                         variant="primary"
                       >
-                        Submit
+                        Sửa chi tiết
                       </Button>
                     </Form>
                   </CardBody>
@@ -329,6 +408,18 @@ class DetailHistory extends React.Component {
               </Col>
             </div>
           ) : null}
+          <Modal isOpen={this.state.modalDelete} toggle={this.toogleDelete}>
+            <ModalHeader toggle={this.toogleDelete}>Modal title</ModalHeader>
+            <ModalBody>Bạn có chắc chắn muốn xoá dữ liệu này</ModalBody>
+            <ModalFooter>
+              <Button color="primary" onClick={this.removeHistory}>
+                Chắc chắn
+              </Button>{" "}
+              <Button color="secondary" onClick={this.toogleDelete}>
+                Không
+              </Button>
+            </ModalFooter>
+          </Modal>
         </ModalBody>
       </Modal>
     );

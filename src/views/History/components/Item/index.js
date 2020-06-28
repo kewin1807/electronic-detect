@@ -39,10 +39,14 @@ export default class ItemHistory extends React.Component {
             <p className="card-category">{`Huyện/Quận: ${
               item.district ? item.district : "Chưa xác định"
             } `}</p>
-            <Button onClick={this.navigateToDetail}>Detail</Button>
+            <Button onClick={this.navigateToDetail}>Chi tiết</Button>
           </CardBody>
         </Card>
-        <DetailHistory ref={this.detailRef} setItem={this.setItem} />
+        <DetailHistory
+          ref={this.detailRef}
+          setItem={this.setItem}
+          getData={this.props.getData}
+        />
       </div>
     );
   }
